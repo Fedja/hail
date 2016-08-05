@@ -25,12 +25,12 @@ object SparseVariantSampleMatrixRRDBuilder {
   //Given a mapping from a variant and its annotations to use as the key to the resulting PairRDD,
   //Aggregates the data in a SparseSampleVariantMatrix
   def buildByVA[K](vsm: VariantSampleMatrix[Genotype], sc: SparkContext, partitioner : Partitioner)(
-    mapOp: (Variant, Annotation)  => K)(implicit uct: ClassTag[K]): RDD[(K, SparseVariantSampleMatrix)] = {
+      mapOp: (Variant, Annotation)  => K)(implicit uct: ClassTag[K]): RDD[(K, SparseVariantSampleMatrix)] = {
     buildByVAstoreSA(vsm,sc,partitioner,Array.empty[String])(mapOp)
   }
 
   def buildByVAstoreSA[K](vsm: VariantSampleMatrix[Genotype], sc: SparkContext, partitioner : Partitioner, sampleAnnotations: Array[String])(
-    mapOp: (Variant, Annotation)  => K)(implicit uct: ClassTag[K]): RDD[(K, SparseVariantSampleMatrix)] = {
+      mapOp: (Variant, Annotation)  => K)(implicit uct: ClassTag[K]): RDD[(K, SparseVariantSampleMatrix)] = {
 
     //Broadcast sample IDs
     val bcSampleIds = sc.broadcast(vsm.sampleIds)
@@ -43,7 +43,7 @@ object SparseVariantSampleMatrixRRDBuilder {
       .mapPartitions { (it: Iterator[(Variant, Annotation, Iterable[Genotype])]) =>
         val gtBuilder = new mutable.ArrayBuilder.ofByte()
         gtBuilder.sizeHint(bcSampleIds.value.size+1) //TODO: Remove when updating to Scala 2.12+
-        val siBuilder = new ArrayBuilder.ofInt()
+      val siBuilder = new ArrayBuilder.ofInt()
         siBuilder.sizeHint(bcSampleIds.value.size+1) //TODO: Remove when updating to Scala 2.12+
         it.map { case (v, va, gs) =>
           gtBuilder.clear()
@@ -56,20 +56,20 @@ object SparseVariantSampleMatrixRRDBuilder {
       }.aggregateByKey(new SparseVariantSampleMatrix(bcSampleIds.value), partitioner) (
       { case (svsm, (v,sampleIndices,genotypes)) => svsm.addVariant(v,sampleIndices,genotypes) },
       { (svsm1,svsm2) => svsm1.merge(svsm2) }).mapValues({svsm =>
-        svsm.addSA(sa.value._1,sa.value._2)
-        svsm
-      })
+      svsm.addSA(sa.value._1,sa.value._2)
+      svsm
+    })
   }
 
   def buildByVAstoreVA[K](vsm: VariantSampleMatrix[Genotype], sc: SparkContext, partitioner : Partitioner, variantAnnotations : Array[String])(
-    mapOp: (Variant, Annotation)  => K)(implicit uct: ClassTag[K]): RDD[(K, SparseVariantSampleMatrix)] = {
+      mapOp: (Variant, Annotation)  => K)(implicit uct: ClassTag[K]): RDD[(K, SparseVariantSampleMatrix)] = {
     buildByVAstoreVAandSA(vsm,sc,partitioner,variantAnnotations,Array.empty[String])(mapOp)
   }
 
   //Given a mapping from a variant and its annotations to use as the key to the resulting PairRDD,
   //Aggregates the data in a SparseSampleVariantMatrix
   def buildByVAstoreVAandSA[K](vsm: VariantSampleMatrix[Genotype], sc: SparkContext, partitioner : Partitioner, variantAnnotations : Array[String], sampleAnnotations: Array[String] = Array[String]())(
-    mapOp: (Variant, Annotation)  => K)(implicit uct: ClassTag[K]): RDD[(K, SparseVariantSampleMatrix)] = {
+      mapOp: (Variant, Annotation)  => K)(implicit uct: ClassTag[K]): RDD[(K, SparseVariantSampleMatrix)] = {
 
     if(variantAnnotations.isEmpty){
       return buildByVAstoreSA(vsm,sc,partitioner,sampleAnnotations)(mapOp)
@@ -100,7 +100,7 @@ object SparseVariantSampleMatrixRRDBuilder {
       .mapPartitions { (it: Iterator[(Variant, Annotation, Iterable[Genotype])]) =>
         val gtBuilder = new mutable.ArrayBuilder.ofByte()
         gtBuilder.sizeHint(bcSampleIds.value.size+1) //TODO: Remove when updating to Scala 2.12+
-        val siBuilder = new ArrayBuilder.ofInt()
+      val siBuilder = new ArrayBuilder.ofInt()
         siBuilder.sizeHint(bcSampleIds.value.size+1) //TODO: Remove when updating to Scala 2.12+
         it.map { case (v, va, gs) =>
           gtBuilder.clear()
@@ -111,7 +111,7 @@ object SparseVariantSampleMatrixRRDBuilder {
           })
           (mapOp(v,va), (v.toString,reducedVA,siBuilder.result(),gtBuilder.result()))
         }
-      //}.aggregateByKey(new SparseVariantSampleMatrix(bcSampleIds.value, newVA, sa.value._1, sa.value._2), partitioner) ( // too slow
+        //}.aggregateByKey(new SparseVariantSampleMatrix(bcSampleIds.value, newVA, sa.value._1, sa.value._2), partitioner) ( // too slow
       }.aggregateByKey(new SparseVariantSampleMatrix(bcSampleIds.value, newVA), partitioner) (
       { case (svsm, (v,reducedVA,sampleIndices,genotypes)) =>
         var va = Annotation.empty
@@ -120,15 +120,15 @@ object SparseVariantSampleMatrixRRDBuilder {
         })
         svsm.addVariant(v,va,sampleIndices,genotypes) },
       { (svsm1,svsm2) => svsm1.merge(svsm2) }).mapValues({svsm =>
-          svsm.addSA(sa.value._1,sa.value._2)
-          svsm
+      svsm.addSA(sa.value._1,sa.value._2)
+      svsm
     })
   }
 
   //Given a mapping from a variant and its annotations to use as the key to the resulting PairRDD,
   //Aggregates the data in a SparseSampleVariantMatrix
   def buildByVAstoreAllVAandSA[K](vsm: VariantSampleMatrix[Genotype], sc: SparkContext, partitioner : Partitioner)(
-    mapOp: (Variant, Annotation)  => K)(implicit uct: ClassTag[K]): RDD[(K, SparseVariantSampleMatrix)] = {
+      mapOp: (Variant, Annotation)  => K)(implicit uct: ClassTag[K]): RDD[(K, SparseVariantSampleMatrix)] = {
 
     /**if(variantAnnotations.isEmpty){
       return buildByVAstoreSA(vsm,sc,partitioner,sampleAnnotations)(mapOp)
@@ -168,7 +168,7 @@ object SparseVariantSampleMatrixRRDBuilder {
   //Given a mapping from a variant and its annotations to use as the key to the resulting PairRDD,
   //Aggregates the data in a SparseSampleVariantMatrix
   def buildByVAandSAstoreVAandSA[K,K2](vsm: VariantSampleMatrix[Genotype], sc: SparkContext, partitioner : Partitioner, variantAnnotations : Array[String], sampleAnnotations: Array[String] = Array[String]())(
-    mapOp: (Variant, Annotation)  => K, saMapOp: Annotation => K2)(implicit uct: ClassTag[K]): RDD[((K,K2), SparseVariantSampleMatrix)] = {
+      mapOp: (Variant, Annotation)  => K, saMapOp: Annotation => K2)(implicit uct: ClassTag[K]): RDD[((K,K2), SparseVariantSampleMatrix)] = {
 
     /**if(variantAnnotations.isEmpty){
       * return buildByAnnotation(vsm,sc,partitioner,sampleAnnotations)(mapOp)
@@ -182,9 +182,9 @@ object SparseVariantSampleMatrixRRDBuilder {
 
     //Create a map of sampleID => saMapOp()
     val saMap = Map.newBuilder[Int,K2]
-      sa.value._2.indices.foreach({
-        i => saMap += ((i,saMapOp(sa.value._2(i))))
-      })
+    sa.value._2.indices.foreach({
+      i => saMap += ((i,saMapOp(sa.value._2(i))))
+    })
     val saMapbc = sc.broadcast(saMap.result())
 
 
@@ -207,7 +207,7 @@ object SparseVariantSampleMatrixRRDBuilder {
       .mapPartitions { (it: Iterator[(Variant, Annotation, Iterable[Genotype])]) =>
         val gtBuilder = new mutable.ArrayBuilder.ofByte()
         gtBuilder.sizeHint(bcSampleIds.value.size+1) //TODO: Remove when updating to Scala 2.12+
-        val siBuilder = new ArrayBuilder.ofInt()
+      val siBuilder = new ArrayBuilder.ofInt()
         siBuilder.sizeHint(bcSampleIds.value.size+1) //TODO: Remove when updating to Scala 2.12+
         it.map { case (v, va, gs) =>
           val reducedVA = queriers.map({qa => qa(va)})
@@ -218,19 +218,19 @@ object SparseVariantSampleMatrixRRDBuilder {
             case (k,ls) =>
               gtBuilder.clear()
               siBuilder.clear()
-             ls.foreach(
-               {case (sa,i,gt) => siBuilder += i
-               gtBuilder += gt}
-             )
+              ls.foreach(
+                {case (sa,i,gt) => siBuilder += i
+                  gtBuilder += gt}
+              )
               (k,v.toString,reducedVA,siBuilder.result(),gtBuilder.result())
-            })
+          })
           (mapOp(v,va),gtBySA)
         }
       }.flatMap({case (g,ls) =>
-        for((sa,v,va,si,gt) <- ls) yield{
-          ((g,sa),(v,va,si,gt))
-        }
-     // }).aggregateByKey(new SparseVariantSampleMatrix(bcSampleIds.value, newVA, sa.value._1, sa.value._2), partitioner) (
+      for((sa,v,va,si,gt) <- ls) yield{
+        ((g,sa),(v,va,si,gt))
+      }
+      // }).aggregateByKey(new SparseVariantSampleMatrix(bcSampleIds.value, newVA, sa.value._1, sa.value._2), partitioner) (
     }).aggregateByKey(new SparseVariantSampleMatrix(bcSampleIds.value, newVA), partitioner) ( //TODO: FixMe -- was buggy anyways given the flatmap
       { case (svsm, (v,reducedVA,sampleIndices,genotypes)) =>
         var va = Annotation.empty
@@ -348,9 +348,9 @@ class SparseVariantSampleMatrix(val sampleIDs: IndexedSeq[String], val vaSignatu
   }
 
   //Return an empty map in case the variant is not present
- def getVariant(variantID: String): Map[String,Genotype] = {
-   getVariant(variantsIndex.getOrElse(variantID, -1))
- }
+  def getVariant(variantID: String): Map[String,Genotype] = {
+    getVariant(variantsIndex.getOrElse(variantID, -1))
+  }
 
   def getVariant(variantIndex: Int): Map[String,Genotype] = {
 
@@ -382,7 +382,7 @@ class SparseVariantSampleMatrix(val sampleIDs: IndexedSeq[String], val vaSignatu
   //In case of an absent sample, returns an empty map
   def getSample(sampleID: String): Map[String,Genotype] = {
     getSample(samplesIndex.getOrElse(sampleID,-1))
- }
+  }
 
   //Returns a Map of Variants -> Genotype for that sample
   //In case of an absent sample, returns an empty map
@@ -604,36 +604,36 @@ class SparseVariantSampleMatrix(val sampleIDs: IndexedSeq[String], val vaSignatu
 
   }
 
- def getGenotype(variantID: String, sampleID:String) : Option[Genotype] = {
+  def getGenotype(variantID: String, sampleID:String) : Option[Genotype] = {
 
-   val sampleIndex = samplesIndex.getOrElse(sampleID,-1)
-   if(sampleIndex < 0){ return None}
+    val sampleIndex = samplesIndex.getOrElse(sampleID,-1)
+    if(sampleIndex < 0){ return None}
 
-   val variantIndex = variantsIndex.getOrElse(variantID,-1)
-   if(variantIndex < 0){ return None}
+    val variantIndex = variantsIndex.getOrElse(variantID,-1)
+    if(variantIndex < 0){ return None}
 
-   Range(0,v_sindices(variantIndex).size).foreach({
-     case i => if(v_sindices(variantIndex)(i) == sampleIndex){ return Some(Genotype(v_genotypes(variantIndex)(i))) }
-   })
+    Range(0,v_sindices(variantIndex).size).foreach({
+      case i => if(v_sindices(variantIndex)(i) == sampleIndex){ return Some(Genotype(v_genotypes(variantIndex)(i))) }
+    })
 
-   return Some(Genotype(0)) //TODO would be best not to hardcode
+    return Some(Genotype(0)) //TODO would be best not to hardcode
 
   }
 
- def getAC(variantID: String) : Int ={
+  def getAC(variantID: String) : Int ={
 
-   val variantIndex = variantsIndex.getOrElse(variantID,-1)
-   if(variantIndex < 0){ return 0}
+    val variantIndex = variantsIndex.getOrElse(variantID,-1)
+    if(variantIndex < 0){ return 0}
 
-   v_genotypes(variantIndex).foldLeft(0)({
-     case (acc, gt) =>
-       val genotype = Genotype(gt)
-       if(genotype.isHet){acc +1}
-       else if(genotype.isHomVar){acc + 2}
-       else{acc}
-   })
+    v_genotypes(variantIndex).foldLeft(0)({
+      case (acc, gt) =>
+        val genotype = Genotype(gt)
+        if(genotype.isHet){acc +1}
+        else if(genotype.isHomVar){acc + 2}
+        else{acc}
+    })
 
- }
+  }
 
 
   /** Compute genotype counts over a pair of variants
@@ -651,7 +651,7 @@ class SparseVariantSampleMatrix(val sampleIDs: IndexedSeq[String], val vaSignatu
     * (7) Aabb
     * (8) aabb
     */
-   def getGenotypeCounts(variantID1: String, variantID2: String) : DenseVector[Int] = {
+  def getGenotypeCounts(variantID1: String, variantID2: String) : DenseVector[Int] = {
 
     val gtCounts = new DenseVector(new Array[Int](9))
     var n_noCalls = 0

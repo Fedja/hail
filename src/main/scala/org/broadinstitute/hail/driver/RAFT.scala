@@ -293,7 +293,6 @@ class RaftAnnotationCounter( annot: String, svm:SparseVariantSampleMatrix, pheno
                     case Some(true) => {
                       if (!case_homvars.contains(sample_id) )
                         case_homvars(sample_id) = new ArrayBuffer[String]
-                      println("FULL homozygote for " + sample_id + ". "  + svm.variants(vi) )
                       case_homvars(sample_id) += svm.variants(vi)
                     }
 

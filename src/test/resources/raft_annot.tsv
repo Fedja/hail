@@ -2,4 +2,5 @@ Variant	GENE
 1:1:A:G	gene1
 1:2:A:G	gene1
 2:1:A:G	gene2
-2:2:A:G	gene2
+2:3:A:G	gene2
+3:1:T:C	gene1
