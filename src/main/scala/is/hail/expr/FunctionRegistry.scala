@@ -7,11 +7,14 @@ import is.hail.stats._
 import is.hail.utils.EitherIsAMonad._
 import is.hail.utils._
 import is.hail.variant.{AltAllele, Genotype, Locus, Variant}
+import org.apache.commons.math3.stat.inference._
 
 import scala.collection.mutable
 import scala.language.higherKinds
 
 object FunctionRegistry {
+
+  private def chisqtest = new ChiSquareTest()
 
   sealed trait LookupError {
     def message: String
@@ -586,6 +589,23 @@ object FunctionRegistry {
     val fet = FisherExactTest(c1, c2, c3, c4)
     Annotation(fet(0).orNull, fet(1).orNull, fet(2).orNull, fet(3).orNull)
   })
+
+  registerAnn("chisq", TStruct(("pValue", TDouble) ), { (c1: Int, c2: Int, c3: Int, c4: Int) =>
+    if (c1 < 0 || c2 < 0 || c3 < 0 || c4 < 0)
+      fatal(s"got invalid argument to function `chisq': chisq($c1, $c2, $c3, $c4)")
+    val chisqp =  chisqtest.chiSquareTest( Array( Array(c1, c2), Array(c3, c4) ) )
+
+    //var or:Double = 0
+
+    //if ( c1>0 && c3==0 )
+    //  or = Double.PositiveInfinity
+    //else if ( c3>0 && c2==0 )
+    // or = Double.NegativeInfinity
+    //val or = c1 * c4 / c2 * c3.toDouble
+
+    Annotation( chisqp)
+  })
+
   // NB: merge takes two structs, how do I deal with structs?
   register("exp", { (x: Double) => math.exp(x) })
   register("log10", { (x: Double) => math.log10(x) })
